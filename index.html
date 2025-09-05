@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>夏季課題 確認テスト（単一HTML）</title>
+<link rel="manifest" href="data:application/manifest+json,{"name": "夏季課題 確認テスト", "short_name": "夏季課題テスト", "start_url": ".", "display": "standalone", "background_color": "#ffffff", "theme_color": "#0ea5e9", "icons": []}">
+<style>
+  :root { --bg:#fafafa; --panel:#ffffff; --text:#111; --muted:#666; --accent:#0ea5e9; --ok:#16a34a; --bad:#dc2626; }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif; }
+  .wrap{max-width:920px;margin:0 auto;padding:16px;}
+  header{position:sticky;top:0;background:var(--panel);border-bottom:1px solid #eee;z-index:10}
+  header .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 0;}
+  h1{font-size:20px;margin:8px 0;}
+  select,button,input[type="checkbox"]{font-size:16px;padding:8px;border-radius:8px;border:1px solid #ddd;background:#fff}
+  button.primary{background:var(--accent);color:#fff;border:0}
+  .card{background:var(--panel);border:1px solid #eee;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);padding:16px;margin:14px 0;}
+  .meta{font-size:12px;color:var(--muted)}
+  .qtext{font-size:18px;line-height:1.6;margin:8px 0 12px}
+  .choices{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+  .choice{padding:10px;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer}
+  .choice:hover{border-color:#bbb}
+  .fitb{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .fitb input{flex:1}
+  .res{font-size:18px;margin-top:10px}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  .ex{margin-top:6px;color:#333;background:#f7fafc;border:1px dashed #cbd5e1;padding:10px;border-radius:8px;font-size:14px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#eef;display:inline-block;margin-right:6px}
+  .footer{color:#777;font-size:12px;margin:20px 0 60px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>夏季課題 確認テスト</h1>
+    <div class="bar">
+      <label>モード：
+        <select id="mode">
+          <option value="study">学習モード</option>
+          <option value="exam">試験モード</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="shuffle" checked> シャッフル</label>
+      <label><input type="checkbox" id="shuffleChoices" checked> 選択肢シャッフル</label>
+      <label><input type="checkbox" id="saveScore" checked> スコア保存</label>
+      <button id="start" class="primary">開始 / 最初から</button>
+      <button id="mistOnly" title="間違えた問題のみ復習">暗記モード</button>
+      <span id="status" class="meta"></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="quiz"></div>
+  <div class="footer">
+    <div>最終更新：2025-09-05 10:32 ／ 単一HTML（iPhone Safari互換）</div>
+    <div>機能：正解時は「◯」、正誤に関わらず解説表示／学習⇄試験モード／シャッフル／暗記モード（間違いのみ）／最初からボタン／簡易PWA</div>
+    <div>更新方法：このHTML中の <code>const QBANK = []</code> を修正。IDは <code>Q001</code> 形式。変更依頼は「Q[番号]：『旧文』→『新文』」のルールで。</div>
+  </div>
+</div>
+
+<script>
+const QBANK = [
+  {
+    "id": "Q001",
+    "section": "国語表現法",
+    "type": "mc",
+    "question": "英語に『敬語の文法』はない。（　）英語にも丁寧な表現はある。",
+    "choices": [
+      "つまり",
+      "しかし",
+      "そして",
+      "だから"
+    ],
+    "answer": 1,
+    "explanation": "逆接なので『しかし』。"
+  },
+  {
+    "id": "Q002",
+    "section": "国語表現法",
+    "type": "mc",
+    "question": "彼のレポートは着眼点が面白い。（　）ものの見方、視点が独特なのだ。",
+    "choices": [
+      "つまり",
+      "しかし",
+      "そして",
+      "だから"
+    ],
+    "answer": 0,
+    "explanation": "言い換えの『つまり』。"
+  },
+  {
+    "id": "Q003",
+    "section": "国語表現法",
+    "type": "mc",
+    "question": "記者は資料を読み込んでいた。（　）質問も鋭かった。",
+    "choices": [
+      "しかし",
+      "だから",
+      "そして",
+      "つまり"
+    ],
+    "answer": 2,
+    "explanation": "順接で並列の『そして』。"
+  },
+  {
+    "id": "Q004",
+    "section": "国語表現法",
+    "type": "mc",
+    "question": "現存している作品は少ない。（　）寡作だったからなおさら希少だ。",
+    "choices": [
+      "しかし",
+      "つまり",
+      "だから",
+      "しかも"
+    ],
+    "answer": 3,
+    "explanation": "付加の『しかも』。"
+  },
+  {
+    "id": "Q005",
+    "section": "国語表現法",
+    "type": "mc",
+    "question": "鎮痛剤を処方してもらった。（　）痛みがひどくなければ飲まないように言われた。",
+    "choices": [
+      "ただし",
+      "しかし",
+      "だから",
+      "つまり"
+    ],
+    "answer": 0,
+    "explanation": "条件付きの『ただし』。"
+  },
+  {
+    "id": "Q006",
+    "section": "情報リテラシー",
+    "type": "fitb",
+    "question": "ファイルとは、音楽・写真・映像・文書などの（　）の記録物のこと。",
+    "answers": [
+      "単一",
+      "ひとつ",
+      "単体"
+    ],
+    "explanation": "『単一』の記録物。"
+  },
+  {
+    "id": "Q007",
+    "section": "情報リテラシー",
+    "type": "fitb",
+    "question": "フォルダとは、さまざまなファイルを保管する（　）のこと。",
+    "answers": [
+      "入れ物",
+      "容れ物",
+      "ディレクトリ",
+      "フォルダー"
+    ],
+    "explanation": "『入れ物』= ディレクトリ。"
+  },
+  {
+    "id": "Q008",
+    "section": "情報リテラシー",
+    "type": "fitb",
+    "question": "盗用とは、他人の所有になるものを（　）で使用すること。",
+    "answers": [
+      "無断",
+      "むだん"
+    ],
+    "explanation": "『無断』で使用すること。"
+  },
+  {
+    "id": "Q009",
+    "section": "情報リテラシー",
+    "type": "fitb",
+    "question": "剽窃とは、他人の作品や論文を盗んで、（　）のものとして発表すること。",
+    "answers": [
+      "自分",
+      "じぶん"
+    ],
+    "explanation": "『自分のもの』として発表。"
+  },
+  {
+    "id": "Q010",
+    "section": "情報リテラシー",
+    "type": "fitb",
+    "question": "これらは（　）侵害にもあたるので、出典の明記が重要。",
+    "answers": [
+      "著作権",
+      "ちょさくけん"
+    ],
+    "explanation": "著作権侵害。"
+  },
+  {
+    "id": "Q024",
+    "section": "生物学",
+    "type": "fitb",
+    "question": "ヒトの染色体の本数は（　）本。",
+    "answers": [
+      "46",
+      "４６"
+    ],
+    "explanation": "体細胞は46本。"
+  },
+  {
+    "id": "Q030",
+    "section": "生物学",
+    "type": "fitb",
+    "question": "外界と血液とのガス交換＝（　）呼吸。",
+    "answers": [
+      "外",
+      "外呼吸"
+    ],
+    "explanation": "外呼吸。"
+  },
+  {
+    "id": "Q037",
+    "section": "化学",
+    "type": "fitb",
+    "question": "アボガドロ数は 6.02×10^（　）。",
+    "answers": [
+      "23",
+      "２３"
+    ],
+    "explanation": "6.02×10^23。"
+  },
+  {
+    "id": "Q041",
+    "section": "化学",
+    "type": "mc",
+    "question": "P1V1=P2V2 を表す法則は？",
+    "choices": [
+      "ボイルの法則",
+      "シャルルの法則",
+      "ゲイリュサックの法則",
+      "ドルトンの法則"
+    ],
+    "answer": 0,
+    "explanation": "圧力と体積の反比例＝ボイルの法則。"
+  },
+  {
+    "id": "Q052",
+    "section": "歯の解剖学",
+    "type": "fitb",
+    "question": "乳歯は生後（　）か月から萌出、合計（　）本。",
+    "answers": [
+      "6,20",
+      "６,２０"
+    ],
+    "explanation": "生後6か月〜、20本。"
+  },
+  {
+    "id": "Q055",
+    "section": "歯の解剖学",
+    "type": "fitb",
+    "question": "乳歯列側方面観の上顎BC間・下顎CD間の空隙は（　）。",
+    "answers": [
+      "霊長空隙"
+    ],
+    "explanation": "霊長空隙。"
+  },
+  {
+    "id": "Q106",
+    "section": "歯科予防処置I",
+    "type": "mc",
+    "question": "う蝕C2はどこまで？",
+    "choices": [
+      "エナメル質内",
+      "象牙質まで",
+      "歯髄まで",
+      "残根状態"
+    ],
+    "answer": 1,
+    "explanation": "C2＝象牙質まで。"
+  },
+  {
+    "id": "Q107",
+    "section": "歯科予防処置I",
+    "type": "mc",
+    "question": "健康歯肉の特徴で正しいのは？",
+    "choices": [
+      "淡いピンクでスティップリングあり",
+      "発赤腫脹・ポケット形成",
+      "アタッチメントロスがある",
+      "排膿がみられる"
+    ],
+    "answer": 0,
+    "explanation": "健康歯肉＝淡いピンク、張り、スティップリング。"
+  },
+  {
+    "id": "Q113",
+    "section": "歯科診療補助I",
+    "type": "mc",
+    "question": "AED準備後、『除細動を行う』と指示→次の対応は？",
+    "choices": [
+      "脈を触知する",
+      "患者に触れない",
+      "人工呼吸を続ける",
+      "呼吸を確認する"
+    ],
+    "answer": 1,
+    "explanation": "ショック実行時は誰も触れない。"
+  }
+];
+
+function normalizeText(s){ if(!s) return ""; const z={"０":"0","１":"1","２":"2","３":"3","４":"4","５":"5","６":"6","７":"7","８":"8","９":"9"}; s=s.toString().trim().toLowerCase(); s=s.replace(/[\u3000\s]+/g,""); s=s.replace(/[０-９]/g, ch=>z[ch]||ch); return s; }
+function shuffleArray(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function saveLocal(k,v){ try{localStorage.setItem(k, JSON.stringify(v));}catch(e){} }
+function loadLocal(k,f){ try{const v=JSON.parse(localStorage.getItem(k)||"null"); return (v==null?f:v);}catch(e){return f;} }
+
+let order=[], idx=0, correct=0, wrongIds=[], current=null, currentChoiceOrder=[];
+let modeSel, shuffleChk, shuffleChoicesChk, saveScoreChk, quizEl, statusEl;
+
+function init(){
+  modeSel=document.getElementById('mode'); shuffleChk=document.getElementById('shuffle'); shuffleChoicesChk=document.getElementById('shuffleChoices'); saveScoreChk=document.getElementById('saveScore');
+  quizEl=document.getElementById('quiz'); statusEl=document.getElementById('status');
+  document.getElementById('start').addEventListener('click', startAll);
+  document.getElementById('mistOnly').addEventListener('click', startMistOnly);
+  renderWelcome();
+  if('serviceWorker' in navigator){ try{ const sw=`self.addEventListener('install', e=>{e.waitUntil(caches.open('summer-quiz-v1').then(c=>c.addAll(['./'])));}); self.addEventListener('fetch', e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});`; const blob=new Blob([sw],{type:'text/javascript'}); const url=URL.createObjectURL(blob); navigator.serviceWorker.register(url);}catch(e){} }
+}
+
+function renderWelcome(){
+  const best=loadLocal('summerQuizBest', null); const mist=loadLocal('summerQuizWrong', []);
+  let html = `<div class="card"><div class="qtext"><strong>ようこそ。</strong> 上の「開始 / 最初から」でスタート。学習モードはその場で解説、試験モードは採点を行います。</div>
+  <div class="meta">問題数：${QBANK.length} ／ セクション数：${new Set(QBANK.map(x=>x.section)).size}</div>`;
+  if(best) html += `<div class="pill">ベストスコア：${best.score} / ${best.total}（${best.date}）</div>`;
+  if(mist && mist.length) html += `<div class="pill">暗記用に未正解：${mist.length}題</div>`;
+  html += `</div>`;
+  quizEl.innerHTML = html; statusEl.textContent = "";
+}
+
+function startAll(){ order=QBANK.map((_,i)=>i); if(shuffleChk.checked) shuffleArray(order); idx=0; correct=0; wrongIds=[]; next(); }
+function startMistOnly(){
+  const mist=loadLocal('summerQuizWrong', []); if(!mist || !mist.length){ alert('暗記モード：未正解の蓄積がありません。'); return; }
+  const id2idx=new Map(QBANK.map((q,i)=>[q.id,i])); order=mist.map(qid=>id2idx.get(qid)).filter(i=>i!=null);
+  if(!order.length){ alert('暗記モードに出題できる問題がありません。'); return; }
+  if(shuffleChk.checked) shuffleArray(order); idx=0; correct=0; wrongIds=[]; next();
+}
+
+function next(){ if(idx>=order.length){ finish(); return; } current=QBANK[order[idx]]; renderQuestion(current); }
+
+function renderQuestion(q){
+  let html = `<div class="card"><div class="meta">ID: ${q.id} ／ セクション：${q.section} ／ ${idx+1} / ${order.length}</div><div class="qtext">${q.question}</div>`;
+  if(q.type==="mc"){ let ch=q.choices.map((c,i)=>({c,i})); currentChoiceOrder=ch.map(x=>x.i); if(shuffleChoicesChk.checked) shuffleArray(ch);
+    html += `<div class="choices">` + ch.map(o=>`<div class="choice" data-i="${o.i}">${o.c}</div>`).join("") + `</div>`;
+  }else{ html += `<div class="fitb"><input id="fitb" type="text" placeholder="解答を入力"><button class="primary" id="fitbBtn">回答</button></div>`; }
+  html += `<div id="res" class="res"></div><div id="ex" class="ex" style="display:none"></div><div class="controls"><button id="nextBtn">次へ</button></div></div>`;
+  quizEl.innerHTML = html;
+  if(q.type==="mc"){ Array.from(document.querySelectorAll('.choice')).forEach(el=>{ el.addEventListener('click', ()=>checkMC(parseInt(el.getAttribute('data-i'),10))); }); }
+  else { document.getElementById('fitbBtn').addEventListener('click', ()=>checkFITB()); document.getElementById('fitb').addEventListener('keydown', (e)=>{ if(e.key==='Enter') checkFITB(); }); }
+  document.getElementById('nextBtn').addEventListener('click', ()=>{ idx++; next(); });
+  statusEl.textContent = `正解：${correct}／${idx}`;
+}
+
+function checkMC(chIdx){
+  const res=document.getElementById('res'), ex=document.getElementById('ex'); const ok=(chIdx===current.answer); const circles= ok? "◯":"×";
+  res.innerHTML = ok ? `<span class='ok'>${circles} 正解！</span>` : `<span class='bad'>${circles} 不正解</span>`;
+  ex.style.display='block'; ex.textContent = current.explanation || "";
+  if(ok) correct++; else wrongIds.push(current.id);
+  statusEl.textContent = `正解：${correct}／${idx+1}`;
+}
+
+function checkFITB(){
+  const inp=document.getElementById('fitb'); const res=document.getElementById('res'); const ex=document.getElementById('ex');
+  const user=normalizeText(inp.value); const answers=(current.answers||[]).map(normalizeText);
+  const ok = answers.some(a => a===user || (a.includes(",") && a.split(",").every(part => user.includes(part))));
+  const circles= ok? "◯":"×";
+  res.innerHTML = ok ? `<span class='ok'>${circles} 正解！</span>` : `<span class='bad'>${circles} 不正解</span>`;
+  ex.style.display='block'; ex.textContent = current.explanation || "";
+  if(ok) correct++; else wrongIds.push(current.id);
+  statusEl.textContent = `正解：${correct}／${idx+1}`;
+}
+
+function finish(){
+  const total=order.length;
+  quizEl.innerHTML = `<div class="card"><div class="qtext"><strong>結果</strong>：${correct} / ${total}</div>
+    <div class="meta">未正解：${total-correct}題</div>
+    <div class="controls"><button class="primary" id="restart">最初から</button><button id="memorize">暗記モード（未正解のみ）</button></div></div>`;
+  document.getElementById('restart').addEventListener('click', startAll);
+  document.getElementById('memorize').addEventListener('click', startMistOnly);
+  statusEl.textContent = `正解：${correct}／${total}`;
+  if(document.getElementById('saveScore').checked){
+    const best=loadLocal('summerQuizBest', null); const rec={score:correct,total,date:new Date().toLocaleString()};
+    if(!best || (correct/total)>(best.score/best.total)) saveLocal('summerQuizBest', rec);
+    saveLocal('summerQuizWrong', wrongIds.filter((v,i,a)=>a.indexOf(v)===i));
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
